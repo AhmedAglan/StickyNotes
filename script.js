@@ -185,6 +185,16 @@ function makeStickyNoteDraggable(note) {
         initialY = e.clientY - note.getBoundingClientRect().top;
     });
 
+        // Touch event listeners for mobile devices
+        note.addEventListener("touchstart", (e) => {
+            if (e.target !== note) return; // Ignore touchstart events on children
+            isDragging = true;
+            const boundingBox = note.getBoundingClientRect();
+            offsetX = e.touches[0].clientX - boundingBox.left;
+            offsetY = e.touches[0].clientY - boundingBox.top;
+            e.preventDefault(); // Prevent the default touch behavior
+        });
+    
     document.addEventListener("mousemove", (e) => {
         if (isDragging) {
             const x = e.clientX - initialX;
@@ -194,7 +204,22 @@ function makeStickyNoteDraggable(note) {
         }
     });
 
+    // Touch event listener for mobile devices
+    document.addEventListener("touchmove", (e) => {
+        if (isDragging) {
+            const x = e.touches[0].clientX - offsetX;
+            const y = e.touches[0].clientY - offsetY;
+            note.style.left = x + "px";
+            note.style.top = y + "px";
+        }
+    });
+
     document.addEventListener("mouseup", () => {
+        isDragging = false;
+    });
+
+    // Touch event listener for mobile devices
+    document.addEventListener("touchend", () => {
         isDragging = false;
     });
 
