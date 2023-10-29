@@ -13,19 +13,21 @@ body {
     display: flex;
     justify-content: space-between;
     background-color: #bdc4d4;
-    color:blue;
+    color: blue;
     padding: 2px;
-    text-align:center;
-    cursor: text; /* Change cursor to indicate editability */
+    text-align: center;
+    cursor: text;
+    /* Change cursor to indicate editability */
     border-radius: 5px 5px 0 0;
 }
 
-.content{
+.content {
     display: flex;
     justify-content: space-between;
     padding: 2px;
-    text-align:center;
-    cursor: text; /* Change cursor to indicate editability */
+    text-align: center;
+    cursor: text;
+    /* Change cursor to indicate editability */
     border-radius: 5px 5px 0 0;
     font-weight: bold;
 }
@@ -36,9 +38,12 @@ body {
     border-radius: 5px;
     width: 300px;
     min-height: 200px;
-    position: absolute; /* Make notes position absolute for easy dragging */
-    user-drag: none; /* Disable the default browser dragging behavior */
-    cursor: grab; /* Change cursor to indicate that notes are draggable */
+    position: absolute;
+    /* Make notes position absolute for easy dragging */
+    user-drag: none;
+    /* Disable the default browser dragging behavior */
+    cursor: grab;
+    /* Change cursor to indicate that notes are draggable */
     resize: both;
     overflow: auto;
 }
@@ -46,11 +51,13 @@ body {
 .resize-handle {
     width: 30px;
     height: 30px;
-    background-color: #3498db; /* Handle color */
+    background-color: #3498db;
+    /* Handle color */
     position: absolute;
     bottom: 0;
     right: 0;
-    cursor: se-resize; /* Change cursor to indicate resize */
+    cursor: se-resize;
+    /* Change cursor to indicate resize */
 }
 
 /* Style for the delete button */
@@ -84,4 +91,10 @@ body {
     cursor: pointer;
     font-size: 1rem;
     color: #d9534f; /* Red color, you can change this to your desired color */
+}
+
+/* Highlight the selected note with a border */
+.note.selected {
+    border: 2px solid #007bff; /* Blue border, customize as needed */
+    border-radius: 5px 5px 0 0;
 }

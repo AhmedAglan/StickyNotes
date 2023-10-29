@@ -1,7 +1,73 @@
 const container = document.getElementById("container");
 const addNoteButton = document.getElementById("addNote");
 
+let zIndexCounter = 1;
+
 addNoteButton.addEventListener("click", createStickyNote);
+
+function updateListItemText(listItem, newText) {
+    listItem.textContent = newText;
+}
+
+function selectNoteById(noteId) {
+    note = document.querySelector(`[data-id="${noteId}"]`);
+
+    if (!note) {
+        note = restoreNoteById(noteId);
+
+        addEventListeners(note);
+
+        container.appendChild(note);
+
+    }
+
+    HighlightNote(note);
+}
+
+function HighlightNote(note) {
+
+    // Deselect any previously selected notes
+    const selectedNotes = document.querySelectorAll(".note.selected");
+    for (const selectedNote of selectedNotes) {
+        selectedNote.classList.remove("selected");
+    }
+
+    // Highlight the selected note and bring it to the front
+    note.classList.add("selected");
+    note.style.zIndex = zIndexCounter++;
+}
+
+function removeListItemById(listItemId) {
+    const listItem = document.getElementById(listItemId);
+    if (listItem) {
+        listItem.remove();
+    }
+}
+
+function createListItemForNote(note) {
+    // Create a list item for the note and add it to the list
+    const noteList = document.getElementById("note-list");
+
+    const listItem = document.createElement("li");
+    listItem.textContent = note.querySelector(".title-bar div").textContent;
+    listItem.id = note.dataset.id;
+
+    // Add a click event listener to the list item to select the corresponding note
+    listItem.addEventListener("click", () => {
+        selectNoteById(listItem.id);
+    });
+
+    noteList.querySelector("ul").appendChild(listItem);
+
+    // Add an event listener to the note's title for changes
+    const title = note.querySelector(".title-bar div");
+    title.addEventListener("input", () => {
+        updateListItemText(listItem, title.textContent);
+    });
+
+
+    return listItem;
+}
 
 function createNote() {
     const note = document.createElement("div");
@@ -44,7 +110,10 @@ function createNote() {
         // Ask for confirmation before deleting the note
         const confirmed = confirm("Are you sure you want to delete this note?");
         if (confirmed) {
-            removeNoteFromStorage(note.dataset.id);
+            const noteId = note.dataset.id;
+            removeNoteFromStorage(noteId);
+            removeListItemById(noteId); // Remove the corresponding list item
+
             note.remove();
         }
     });
@@ -109,6 +178,11 @@ function addEventListeners(note) {
     note.addEventListener("mouseup", () => {
         note.removeEventListener("mousemove", saveNoteOnMoveResize(note));
     });
+
+    note.addEventListener("touchend", () => {
+        note.removeEventListener("touchend", saveNoteOnMoveResize(note));
+    });
+
 }
 
 function setRandomNoteBackgroundColor(note) {
@@ -143,6 +217,7 @@ function createStickyNote() {
     // Save the note immediately after creating it
     saveNote(note);
 
+    createListItemForNote(note)
 
 }
 
@@ -183,18 +258,22 @@ function makeStickyNoteDraggable(note) {
         isDragging = true;
         initialX = e.clientX - note.getBoundingClientRect().left;
         initialY = e.clientY - note.getBoundingClientRect().top;
+
+        HighlightNote(note);
     });
 
-        // Touch event listeners for mobile devices
-        note.addEventListener("touchstart", (e) => {
-            if (e.target !== note) return; // Ignore touchstart events on children
-            isDragging = true;
-            const boundingBox = note.getBoundingClientRect();
-            offsetX = e.touches[0].clientX - boundingBox.left;
-            offsetY = e.touches[0].clientY - boundingBox.top;
-            e.preventDefault(); // Prevent the default touch behavior
-        });
-    
+    // Touch event listeners for mobile devices
+    note.addEventListener("touchstart", (e) => {
+        if (e.target !== note) return; // Ignore mousedown events on children
+        isDragging = true;
+        const boundingBox = note.getBoundingClientRect();
+        offsetX = e.touches[0].clientX - boundingBox.left;
+        offsetY = e.touches[0].clientY - boundingBox.top;
+        e.preventDefault(); // Prevent the default touch behavior
+
+        HighlightNote(note);
+    });
+
     document.addEventListener("mousemove", (e) => {
         if (isDragging) {
             const x = e.clientX - initialX;
@@ -206,6 +285,7 @@ function makeStickyNoteDraggable(note) {
 
     // Touch event listener for mobile devices
     document.addEventListener("touchmove", (e) => {
+        if (e.target !== note) return; // Ignore mousedown events on children
         if (isDragging) {
             const x = e.touches[0].clientX - offsetX;
             const y = e.touches[0].clientY - offsetY;
@@ -220,6 +300,7 @@ function makeStickyNoteDraggable(note) {
 
     // Touch event listener for mobile devices
     document.addEventListener("touchend", () => {
+        if (e.target !== note) return; // Ignore mousedown events on children
         isDragging = false;
     });
 
@@ -262,31 +343,41 @@ function makeStickyNoteResizable(note) {
     });
 
 }
+function restoreNoteById(noteId) {
+    const savedNote = JSON.parse(localStorage.getItem(noteId));
+    const note = createNote();
+    note.querySelector(".title-bar div").textContent = savedNote.title;
+    note.querySelector(".content").innerHTML = savedNote.content;
+    note.style.top = savedNote.top;
+    note.style.left = savedNote.left;
+    note.style.width = savedNote.width;
+    note.style.height = savedNote.height;
+    note.style.backgroundColor = savedNote.backgroundColor;
+    note.dataset.id = noteId; // Set the note's ID from local storage
+
+    return note;
+}
 
 function restoreNotes() {
     for (let i = 0; i < localStorage.length; i++) {
         const noteId = localStorage.key(i);
 
         if (noteId.startsWith("note-")) {
-            const savedNote = JSON.parse(localStorage.getItem(noteId));
-            const note = createNote();
-            note.querySelector(".title-bar div").textContent = savedNote.title;
-            note.querySelector(".content").innerHTML = savedNote.content;
-            note.style.top = savedNote.top;
-            note.style.left = savedNote.left;
-            note.style.width = savedNote.width;
-            note.style.height = savedNote.height;
-            note.style.backgroundColor = savedNote.backgroundColor;
-            note.dataset.id = noteId; // Set the note's ID from local storage
+
+            const note = restoreNoteById(noteId)
 
             addEventListeners(note);
 
             container.appendChild(note);
+
+            createListItemForNote(note)
         }
     }
 }
 
 function saveNoteToAPI(noteData) {
+    return;
+
     const apiUrl = "https://your-api-endpoint.com/notes"; // Replace with your actual API endpoint
 
     fetch(apiUrl, {
@@ -309,6 +400,10 @@ function saveNoteToAPI(noteData) {
             console.error('Error:', error);
         });
 }
+
+document.getElementById("reload-button").addEventListener("click", () => {
+    location.reload();
+});
 
 // Call the function to restore notes when the page loads
 restoreNotes();
