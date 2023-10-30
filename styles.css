@@ -40,7 +40,7 @@ body {
     min-height: 200px;
     position: absolute;
     /* Make notes position absolute for easy dragging */
-    user-drag: none;
+    /* user-drag: none; */
     /* Disable the default browser dragging behavior */
     cursor: grab;
     /* Change cursor to indicate that notes are draggable */

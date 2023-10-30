@@ -337,7 +337,6 @@ function makeStickyNoteDraggable(note) {
 
     // Touch event listener for mobile devices
     document.addEventListener("touchend", () => {
-        if (e.target !== note) return; // Ignore mousedown events on children
         isDragging = false;
     });
 
