@@ -10,6 +10,7 @@ function updateListItemText(listItem, newText) {
 }
 
 function selectNoteById(noteId) {
+    const listItem = document.getElementById(noteId);
     note = document.querySelector(`[data-id="${noteId}"]`);
 
     if (!note) {
@@ -19,11 +20,38 @@ function selectNoteById(noteId) {
 
         container.appendChild(note);
 
+        // Add an event listener to the note's title for changes
+        const title = note.querySelector(".title-bar div");
+
+        title.addEventListener("input", () => {
+            updateListItemText(listItem, title.textContent);
+        });
     }
 
+    // Select the corresponding list item and add the "selected" class
+    SelectItem(noteId);
+        
     HighlightNote(note);
 }
 
+function toggleListItemSelected(listItem, isSelected) {
+    if (isSelected) {
+        listItem.classList.add("selected");
+    } else {
+        listItem.classList.remove("selected");
+    }
+}
+
+function SelectItem(noteId){
+            // Deselect unselected list items
+            const listItems = document.querySelectorAll("#note-list ul li");
+            for (const listItem of listItems) {
+                if (listItem.id !== noteId) 
+                    toggleListItemSelected(listItem,false);
+                else
+                toggleListItemSelected(listItem,true);
+            }
+}
 function HighlightNote(note) {
 
     // Deselect any previously selected notes
@@ -58,6 +86,15 @@ function createListItemForNote(note) {
     });
 
     noteList.querySelector("ul").appendChild(listItem);
+
+    // Set the class for even or odd list items
+    const index = Array.from(listItem.parentElement.children).indexOf(listItem);
+    if (index % 2 === 0) {
+        listItem.classList.add("even-item");
+    } else {
+        listItem.classList.add("odd-item");
+    }
+
 
     // Add an event listener to the note's title for changes
     const title = note.querySelector(".title-bar div");
@@ -205,7 +242,7 @@ function createStickyNote() {
 
     // Set an initial position for the note
     note.style.top = '30px';
-    note.style.left = '10px';
+    note.style.left = '150px';
 
     container.appendChild(note);
 
@@ -258,7 +295,7 @@ function makeStickyNoteDraggable(note) {
         isDragging = true;
         initialX = e.clientX - note.getBoundingClientRect().left;
         initialY = e.clientY - note.getBoundingClientRect().top;
-
+        SelectItem(note.dataset.id);
         HighlightNote(note);
     });
 
@@ -270,7 +307,7 @@ function makeStickyNoteDraggable(note) {
         offsetX = e.touches[0].clientX - boundingBox.left;
         offsetY = e.touches[0].clientY - boundingBox.top;
         e.preventDefault(); // Prevent the default touch behavior
-
+        SelectItem(note.dataset.id);
         HighlightNote(note);
     });
 
